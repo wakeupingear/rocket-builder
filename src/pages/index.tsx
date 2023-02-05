@@ -1,16 +1,29 @@
-import Head from 'next/head';
-import { RoundedButton } from '../components/Buttons';
+import Doors from '@/components/3D/garage/Doors';
+import Table from '@/components/3D/garage/Table';
+import { useApp } from '@/components/AppWrapper';
+import { useEffect, useState } from 'react';
+import GarageScene from '../components/3D/garage/GarageScene';
 import { AppPage } from '../components/PageComponents';
 
-export default function Home() {
+export default function Garage() {
+    const { doneTutorial } = useApp();
+
+    const [garageOpen, setGarageOpen] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    const [tableOpen, setTableOpen] = useState(false);
+    useEffect(() => {
+        setTableOpen(!doneTutorial);
+        setGarageOpen(doneTutorial);
+    }, [doneTutorial]);
+
     return (
         <AppPage title="Rocket Garage">
-            <h1 className="mt-32 text-white text-7xl text-center font-bold">
-                Rocket Garage
-            </h1>
-            <RoundedButton className="mt-8" href="/garage">
-                Start Building
-            </RoundedButton>
+            <div className="relative flex w-screen h-screen items-center justify-center">
+                {garageOpen && <GarageScene setLoaded={setLoaded} />}
+                <Doors open={garageOpen && loaded} />
+                <Table tableOpen={tableOpen} setTableOpen={setTableOpen} />
+            </div>
         </AppPage>
     );
 }

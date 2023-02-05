@@ -1,12 +1,14 @@
 import { Canvas } from '@react-three/fiber';
-import { Sky } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
 import { Ground, Skybox } from '../Objects';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { RAPTOR_ENGINE, Rocket } from '@/types/rocketTypes';
 import RocketModel from '../RocketModel';
 import { RocketScrollBar } from './ScrollCam';
-import ScrollCam from './ScrollCam';
-import { ROCKET_EXAMPLE } from '@/cutscenes/intro';
+import { getMaxRocketRadius, getRocketHeight } from '@/utils/rocketUtils';
+import { useApp } from '@/components/AppWrapper';
+import EditPanels from '@/components/EditPanels';
+import LaunchEffects from './LaunchEffects';
+import OptionsMenu from '@/components/OptionsMenu';
 
 interface GarageSceneProps {
     setLoaded?: (loaded: boolean) => void;
@@ -15,36 +17,54 @@ interface GarageSceneProps {
 export default function GarageScene({
     setLoaded = () => {},
 }: GarageSceneProps) {
-    const [rocket, setRocket] = useState<Rocket>(ROCKET_EXAMPLE);
-    const maxRadius = rocket.tanks.reduce(
-        (max, tank) => Math.max(max, tank.radius),
-        0
-    );
-    const minCameraDistance = maxRadius * 2;
+    const { rocket, launching } = useApp();
+    const rocketRef = useRef(rocket);
 
-    const rocketModel = useMemo(
-        () => <RocketModel rocket={rocket} />,
-        [rocket]
-    );
+    const [rocketModel, rocketHeight, rocketRadius] = useMemo(() => {
+        const engineHeight = rocketRef.current.engines.length
+            ? rocketRef.current.engines[0].engine.length
+            : 0;
 
-    const camScroll = useRef(0);
+        return [
+            <RocketModel offset={[0, engineHeight, 0]} />,
+            getRocketHeight(rocketRef.current),
+            getMaxRocketRadius(rocketRef.current),
+        ];
+    }, [rocketRef.current]);
+
+    const [camScroll, setCamScroll] = useState(rocketHeight / 2);
 
     useEffect(() => {
-        setLoaded(true);
+        const timeout = setTimeout(() => {
+            setLoaded(true);
+        }, 1000);
         return () => {
             setLoaded(false);
+            clearTimeout(timeout);
         };
     }, []);
 
-    return (
-        <>
+    const output = useMemo(
+        () => (
             <Canvas flat linear>
                 <ambientLight />
-                <pointLight position={[10, 10, 10]} />
-                <ScrollCam camScroll={camScroll} />
+                <pointLight position={[100, 100, 100]} />
+                <OrbitControls
+                    minPolarAngle={Math.PI / 6}
+                    maxPolarAngle={Math.PI - Math.PI / 6}
+                    enablePan={false}
+                    maxDistance={150}
+                    minDistance={rocketRadius * 2}
+                    target={[0, camScroll, 0]}
+                    position={[0, camScroll, 0]}
+                />
                 {rocketModel}
-                <Skybox url="/textures/skybox.png" />
-                <Ground url="/textures/skybox.png" />
+                <LaunchEffects />
+                <Skybox url="/textures/spaceSkybox.jpg" />
+                <Ground
+                    url="/textures/8k_earth_daymap.jpg"
+                    normalUrl="/textures/2k_earth_normal_map.png"
+                />
                 <Sky
                     distance={450000}
                     sunPosition={[5, 1, 8]}
@@ -52,7 +72,26 @@ export default function GarageScene({
                     azimuth={0.25}
                 />
             </Canvas>
-            <RocketScrollBar camScroll={camScroll} />
+        ),
+        [camScroll, rocketRadius, rocketModel]
+    );
+
+    const scrollBar = useMemo(
+        () => (
+            <RocketScrollBar
+                camScroll={camScroll}
+                setCamScroll={setCamScroll}
+            />
+        ),
+        [camScroll]
+    );
+
+    return (
+        <>
+            {output}
+            <EditPanels />
+            {scrollBar}
+            <OptionsMenu />
         </>
     );
 }

@@ -1,54 +1,51 @@
-import { OrbitControls } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useApp } from '@/components/AppWrapper';
 import clsx from 'clsx';
-import React, { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import ReactSlider from 'react-slider';
 import { Clock, Vector3 } from 'three';
 
-const clock = new Clock();
-
 interface Props {
-    camScroll: MutableRefObject<number>;
+    camScroll: number;
+    setCamScroll: Dispatch<SetStateAction<number>>;
 }
 
-export function RocketScrollBar({ camScroll }: Props) {
+export function RocketScrollBar({ camScroll, setCamScroll }: Props) {
+    const { launching } = useApp();
+
     return (
-        <div className="py-4 flex absolute right-10 h-screen items-stretch">
+        <div
+            className={clsx(
+                'py-4 flex absolute right-10 h-screen items-stretch bg-black w-fit transition-all',
+                {
+                    'opacity-0 pointer-events-none': launching,
+                }
+            )}
+        >
             <ReactSlider
-                value={camScroll.current}
-                onChange={(val) => (camScroll.current = val)}
+                value={camScroll}
+                onChange={(val) => setCamScroll(val)}
                 orientation="vertical"
+                disabled={launching}
                 invert
                 renderThumb={(props, state) => (
                     <div
                         {...props}
                         className={clsx(
-                            'flex w-8 h-8 items-center justify-center',
-                            'hover:cursor-pointer'
+                            'h-12 w-4 rounded-full cursor-pointer transition-all',
+                            'bg-bright'
                         )}
-                    >
-                        {state.valueNow}
-                    </div>
+                    />
+                )}
+                renderTrack={(props, state) => (
+                    <div
+                        {...props}
+                        className={clsx(
+                            'ml-1 w-2 rounded-full cursor-pointer transition-all',
+                            'bg-gray-400 hover:bg-gray-500'
+                        )}
+                    />
                 )}
             />
         </div>
-    );
-}
-
-export default function ScrollCam({ camScroll }: Props) {
-    const { camera } = useThree();
-    useFrame((state, delta) => {
-        camera.lookAt(new Vector3(0, camScroll.current, 0));
-    });
-
-    return (
-        <>
-            <OrbitControls
-                minPolarAngle={Math.PI / 6}
-                maxPolarAngle={Math.PI - Math.PI / 6}
-                enablePan={false}
-                maxDistance={100}
-            />
-        </>
     );
 }

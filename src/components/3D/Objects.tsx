@@ -1,6 +1,7 @@
 import { ThreeElements, useFrame } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { BackSide, TextureLoader } from 'three';
+import { useApp } from '../AppWrapper';
 
 export function Box(props: ThreeElements['mesh']) {
     const ref = useRef<THREE.Mesh>(null!);
@@ -24,14 +25,19 @@ export function Box(props: ThreeElements['mesh']) {
 
 interface SkyboxProps {
     url: string;
+    speed?: number;
 }
 
-export function Skybox({ url, ...props }: SkyboxProps & ThreeElements['mesh']) {
+export function Skybox({
+    url,
+    speed = 0.01,
+    ...props
+}: SkyboxProps & ThreeElements['mesh']) {
     const ref = useRef<THREE.Mesh>(null!);
-    useFrame((state, delta) => (ref.current.rotation.z += delta * 0.01));
+    useFrame((state, delta) => (ref.current.rotation.z += delta * speed));
     return (
         <mesh {...props} ref={ref}>
-            <sphereGeometry args={[300, 300, 300]} />
+            <sphereGeometry args={[800, 800, 800]} />
             <meshBasicMaterial
                 map={new TextureLoader().load(url)}
                 side={BackSide}
@@ -40,18 +46,56 @@ export function Skybox({ url, ...props }: SkyboxProps & ThreeElements['mesh']) {
     );
 }
 
-interface GroundProps {
+type GroundProps = ThreeElements['mesh'] & {
     url: string;
-}
+    normalUrl?: string;
+    speed?: number;
+};
 
-export function Ground({ url, ...props }: GroundProps) {
-    return (
-        <mesh {...props} rotation={[Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[100, 100, 100]} />
-            <meshBasicMaterial
-                map={new TextureLoader().load(url)}
-                side={BackSide}
-            />
-        </mesh>
+export function Ground({ url, normalUrl, speed = 0, ...props }: GroundProps) {
+    const { launchTime, launching } = useApp();
+
+    const radius = 700;
+
+    const timerRef = useRef<number>(0);
+    const ref = useRef<THREE.Mesh>(null!);
+    useFrame((state, delta) => {
+        ref.current.rotation.z += delta * speed;
+
+        if (launching) {
+            if (launchTime === 1) {
+                timerRef.current = state.clock.getElapsedTime();
+            } else if (launchTime === 0) {
+                const time = state.clock.getElapsedTime() - timerRef.current;
+                ref.current.position.y -= 50 * Math.sqrt(time) * delta;
+                if (time > 3) {
+                    ref.current.position.z += 50 * Math.sqrt(time - 3) * delta;
+                }
+            }
+        }
+    });
+
+    const content = useMemo(
+        () => (
+            <mesh
+                {...props}
+                ref={ref}
+                position={[0, -radius, 0]}
+                rotation={[Math.PI / 1.43, Math.PI * 0.835, Math.PI]}
+            >
+                <sphereGeometry args={[radius, radius, radius]} />
+                <meshStandardMaterial
+                    map={new TextureLoader().load(url)}
+                    normalMap={
+                        normalUrl
+                            ? new TextureLoader().load(normalUrl)
+                            : undefined
+                    }
+                />
+            </mesh>
+        ),
+        [ref]
     );
+
+    return content;
 }

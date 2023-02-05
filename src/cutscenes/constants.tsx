@@ -1,4 +1,5 @@
 import { RoundedButton } from '@/components/Buttons';
+import { RocketStyle } from '@/types/rocketStyles';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 
 export type Cutscene = (
@@ -7,7 +8,7 @@ export type Cutscene = (
     path: string,
     setPath: Dispatch<SetStateAction<string>>,
     funcs: { [key: string]: () => void },
-    setSideContent: Dispatch<SetStateAction<ReactNode>>
+    setRocketStyle: Dispatch<SetStateAction<RocketStyle | null>>
 ) => ReactNode;
 
 export const cutsceneNextButton = (

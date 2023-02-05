@@ -1,5 +1,7 @@
 import { useApp } from '@/components/AppWrapper';
 import PostIt from '@/components/PostIt';
+import SidePanel from '@/components/SidePanel';
+import { credits } from '@/cutscenes/credits';
 import { garage } from '@/cutscenes/intro';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import clsx from 'clsx';
@@ -13,18 +15,25 @@ interface TableProps {
 export default function Table({ tableOpen, setTableOpen }: TableProps) {
     const { doneTutorial } = useApp();
 
+    const [postItOpen, setPostItOpen] = useState(false);
     const tableRef = useRef<HTMLDivElement>(null);
     useOnClickOutside(tableRef, () => {
-        if (doneTutorial && !postItOpen) setTableOpen(false);
+        if (doneTutorial) setTableOpen(false);
     });
-
-    const [postItOpen, setPostItOpen] = useState(false);
 
     return (
         <>
             <div
                 className={clsx(
-                    'z-10 flex flex-col absolute w-[calc(100vw-3rem)] h-80 max-w-[80rem] bg-red-700 bottom-[8rem] left-auto right-auto shadow-2xl rounded-t-2xl transition-all duration-500 ease-in-out',
+                    'absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 transition-all duration-500 ease-in-out',
+                    {
+                        'opacity-0 pointer-events-none': !tableOpen,
+                    }
+                )}
+            />
+            <div
+                className={clsx(
+                    'z-10 flex flex-col absolute w-[calc(100vw-3rem)] h-80 max-w-[80rem] bg-red-700 bottom-[3rem] left-auto right-auto shadow-2xl rounded-t-2xl transition-all duration-500 ease-in-out',
                     {
                         '-bottom-[20rem] scale-0': !tableOpen,
                     }
@@ -38,25 +47,27 @@ export default function Table({ tableOpen, setTableOpen }: TableProps) {
                             : { x: 'left-1/2', y: 'top-1/2' })}
                         cutscene={garage}
                         setPostItOpen={setPostItOpen}
-                    />
+                    >
+                        intro
+                    </PostIt>
+                    <PostIt
+                        {...(doneTutorial
+                            ? { x: 'left-1/4', y: 'top-[60%]' }
+                            : { x: '-left-full', y: 'top-[60%]' })}
+                        cutscene={credits}
+                        setPostItOpen={setPostItOpen}
+                    >
+                        links
+                    </PostIt>
                 </div>
                 <div className="mt-auto flex w-full h-16 bg-red-800"></div>
             </div>
-            <div
-                className={clsx(
-                    'absolute bottom-0 flex items-center justify-center w-full transition-all',
-                    {
-                        '!bottom-[-4rem] scale-0': tableOpen,
-                    }
-                )}
-            >
-                <button
-                    className="rounded-t-3xl p-4 bg-red-700 font-bold"
-                    onClick={() => setTableOpen(true)}
-                >
-                    Check Desk
-                </button>
-            </div>
+            <SidePanel
+                buttonChildren="🔧 Workbench"
+                externalOpen={tableOpen}
+                onClick={() => setTableOpen(true)}
+                side="bottom"
+            />
         </>
     );
 }

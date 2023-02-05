@@ -30,7 +30,8 @@ export function RoundedButton({ className, ...rest }: ButtonProps) {
         <Button
             {...rest}
             className={clsx(
-                'px-4 font-bold py-2 rounded-full border-2 border-bright text-bright',
+                'rounded-3xl px-4 py-2 bg-bright border-highlight border-4 font-bold transition-all text-white',
+                'hover:bg-primary hover:border-dark',
                 className
             )}
         />

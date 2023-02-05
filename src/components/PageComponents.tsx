@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import Head from 'next/head';
 import { ReactNode } from 'react';
-import NavBar from './NavBar';
 
 interface AppPageProps {
     children: ReactNode;
@@ -29,7 +28,6 @@ export function AppPage({
             >
                 {children}
             </div>
-            <NavBar />
         </>
     );
 }

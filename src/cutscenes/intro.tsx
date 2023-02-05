@@ -1,7 +1,6 @@
 import RocketModel from '@/components/3D/RocketModel';
-import { RAPTOR_ENGINE, Rocket } from '@/types/rocketTypes';
-import { OrbitControls } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { DEFAULT_ROCKET_STYLE } from '@/types/rocketStyles';
+import { SATURN_V_STYLE } from '@/types/rocketTypes';
 import {
     Cutscene,
     cutsceneClickButton,
@@ -10,54 +9,13 @@ import {
     cutscenePathButton,
 } from './constants';
 
-export const ROCKET_EXAMPLE: Rocket = {
-    name: 'Example Rocket',
-    engines: [
-        {
-            engine: RAPTOR_ENGINE,
-            offset: [0, 0, 0],
-        },
-        {
-            engine: RAPTOR_ENGINE,
-            offset: [2, 0, 0],
-        },
-        {
-            engine: RAPTOR_ENGINE,
-            offset: [-2, 0, 0],
-        },
-        {
-            engine: RAPTOR_ENGINE,
-            offset: [0, 0, 2],
-        },
-        {
-            engine: RAPTOR_ENGINE,
-            offset: [0, 0, -2],
-        },
-    ],
-    tanks: [
-        {
-            mass: 0.1,
-            radius: 5,
-            height: 10,
-            type: 'fuel',
-        },
-        {
-            mass: 0.1,
-            radius: 4,
-            height: 20,
-            type: 'fuel',
-            heightOffset: 8,
-        },
-    ],
-};
-
 export const garage: Cutscene = (
     prog,
     setProg,
     path,
     setPath,
     funcs,
-    setSideContent
+    setRocketStyle
 ) => {
     switch (path) {
         case 'introDone':
@@ -108,23 +66,7 @@ export const garage: Cutscene = (
                     <div className="flex gap-4">
                         {cutsceneClickButton(() => {
                             setProg((prog) => prog + 1);
-                            setSideContent(
-                                <Canvas>
-                                    <ambientLight />
-                                    <pointLight position={[10, 10, 10]} />
-                                    <RocketModel
-                                        rocket={ROCKET_EXAMPLE}
-                                        scale={0.1}
-                                        rocketOffset={[0, -20, 0]}
-                                    />
-                                    <OrbitControls
-                                        minPolarAngle={Math.PI / 6}
-                                        maxPolarAngle={Math.PI - Math.PI / 6}
-                                        enablePan={false}
-                                        maxDistance={20}
-                                    />
-                                </Canvas>
-                            );
+                            setRocketStyle(SATURN_V_STYLE);
                         }, 'of course!')}
                         {cutscenePathButton(
                             'skip',
@@ -140,6 +82,9 @@ export const garage: Cutscene = (
                     </h2>
                     <p>(Well, a very simple model of one)</p>
                     <p>Give it a spin - it's 3D!</p>
+                    <p>
+                        (<b>Drag</b> to spin, <b>Scroll</b> to zoom)
+                    </p>
                     {cutsceneNextButton(setProg, 'wow, pointy!')}
                 </>,
                 <>
@@ -157,7 +102,13 @@ export const garage: Cutscene = (
                         It also reduces shockwaves when going <b>supersonic</b>
                     </p>
                     <p>(That's faster than the speed of sound!)</p>
-                    {cutsceneNextButton(setProg, 'how does it go so fast??')}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle({
+                            ...SATURN_V_STYLE,
+                            engines: [...DEFAULT_ROCKET_STYLE.engines],
+                        });
+                    }, 'how does it go so fast??')}
                 </>,
                 <>
                     <h2 className="text-3xl">
@@ -168,7 +119,18 @@ export const garage: Cutscene = (
                         propels the rocket upwards
                     </p>
                     <p>Check them out at the bottom of the model</p>
-                    {cutsceneNextButton(setProg, 'but how do they work?')}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle({
+                            ...SATURN_V_STYLE,
+                            stages: [
+                                {
+                                    ...DEFAULT_ROCKET_STYLE.stages[0],
+                                },
+                                ...SATURN_V_STYLE.stages.slice(1),
+                            ],
+                        });
+                    }, 'but how do they work?')}
                 </>,
                 <>
                     <h2 className="text-3xl">
@@ -186,7 +148,19 @@ export const garage: Cutscene = (
                         And the faster the exhaust, the more <b>thrust</b> is
                         produced, pushing the rocket up!
                     </p>
-                    {cutsceneNextButton(setProg, 'what kind of gas, 87 or 89?')}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle({
+                            ...SATURN_V_STYLE,
+                            stages: [
+                                {
+                                    ...DEFAULT_ROCKET_STYLE.stages[0],
+                                    oxidizer: ['white', 0],
+                                },
+                                ...SATURN_V_STYLE.stages.slice(1),
+                            ],
+                        });
+                    }, 'what kind of gas, 87 or 89?')}
                 </>,
                 <>
                     <h2 className="text-3xl">...Not just any fuel</h2>
@@ -199,11 +173,22 @@ export const garage: Cutscene = (
                         For example, <b>Space X's Falcon 9</b> uses <b>RP-1</b>{' '}
                         (a highly refined form of Kerosene)
                     </p>
-                    {cutsceneNextButton(setProg, "what about that 'oxidizer'?")}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle({
+                            ...SATURN_V_STYLE,
+                            stages: [
+                                {
+                                    ...DEFAULT_ROCKET_STYLE.stages[0],
+                                },
+                                ...SATURN_V_STYLE.stages.slice(1),
+                            ],
+                        });
+                    }, "what about that 'oxidizer'?")}
                 </>,
                 <>
                     <h2 className="text-3xl">Fuel + Oxidizer = Thrust!</h2>
-                    <p>On its own, fuel won't react</p>
+                    <p>On its own, fuel won't combust and produce thrust</p>
                     <p>
                         But, when liquid fuel is mixed and ignited with an{' '}
                         <b>oxidizer</b>, the energy in both substances is
@@ -213,7 +198,19 @@ export const garage: Cutscene = (
                         Most rockets use the same oxidizer: <b>LOX</b> (Liquid
                         Oxygen)
                     </p>
-                    {cutsceneNextButton(setProg, 'ah like bagels')}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle({
+                            ...SATURN_V_STYLE,
+                            engines: [...DEFAULT_ROCKET_STYLE.engines],
+                            stages: [
+                                {
+                                    ...DEFAULT_ROCKET_STYLE.stages[0],
+                                },
+                                ...SATURN_V_STYLE.stages.slice(1),
+                            ],
+                        });
+                    }, 'ah like bagels')}
                 </>,
                 <>
                     <h2 className="text-3xl">From Tank to Engine</h2>
@@ -240,7 +237,10 @@ export const garage: Cutscene = (
                         This mini-engine's only job is to spin a pump at immense
                         speeds to keep things flowing
                     </p>
-                    {cutsceneNextButton(setProg, 'aghhh my brain')}
+                    {cutsceneClickButton(() => {
+                        setProg((prog) => prog + 1);
+                        setRocketStyle(SATURN_V_STYLE);
+                    }, 'aghhh my brain')}
                 </>,
                 <>
                     <h2 className="text-3xl">Yeah, it's a lot</h2>
