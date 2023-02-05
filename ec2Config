@@ -1,4 +1,4 @@
 Host Rocket-Builder-EC2
-    HostName ec2-54-236-245-32.compute-1.amazonaws.com
+    HostName ec2-52-72-88-96.compute-1.amazonaws.com
     User ubuntu
     IdentityFile ~/.ssh/AWSPersonal.pem
